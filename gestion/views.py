@@ -23,15 +23,13 @@ from django.core.mail import send_mail
 
 def index(request):
     if request.user.is_authenticated:
-        # Si c'est un staff (agent), on envoie vers le dashboard
         if request.user.is_staff:
             return redirect('gestion:dashboard')
-        # Sinon, on envoie vers le portail client
         return redirect('gestion:portail_client')
-    else:
-        # Page d'accueil publique qui propose les deux liens
-        return render(request, 'home.html')
     
+    # Indique le chemin relatif complet au dossier templates
+    return render(request, 'core/home.html')
+
 # On vérifie que seul l'agent peut voir cette liste
 @user_passes_test(lambda u: u.is_staff)
 def liste_clients(request):

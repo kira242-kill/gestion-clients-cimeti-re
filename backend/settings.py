@@ -94,8 +94,8 @@ ROOT_URLCONF = 'backend.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates', BASE_DIR / 'core' / 'templates'],
-        'APP_DIRS': True,
+        'DIRS': [BASE_DIR / 'templates'], # Garde uniquement le dossier global
+        'APP_DIRS': True, # Cela suffit pour trouver core/templates/core/home.html
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',

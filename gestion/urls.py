@@ -6,6 +6,8 @@ from django.conf.urls.static import static
 app_name = 'gestion'
 
 urlpatterns = [
+    # Page d'accueil racine
+    path('', views.index, name='index'),
     # Pages HTML
     path('login/', views.login_view, name='login'),
     path('register/', views.register_view, name='register'),

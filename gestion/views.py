@@ -21,6 +21,12 @@ import random
 from django.core.mail import send_mail
 
 
+def index(request):
+    if request.user.is_authenticated:
+        return redirect('gestion:dashboard') # Redirige les connectés vers le dashboard
+    else:
+        return redirect('gestion:login')    # Redirige les autres vers la page de login
+    
 # On vérifie que seul l'agent peut voir cette liste
 @user_passes_test(lambda u: u.is_staff)
 def liste_clients(request):
@@ -154,7 +160,7 @@ def mettre_a_jour_statuts_automatique():
 
 def logout_view(request):
     logout(request)
-    return redirect('login')
+    return redirect('gestion:login')
 
 
 @login_required

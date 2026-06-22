@@ -28,7 +28,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # --- Configuration des variables d'environnement ---
 SECRET_KEY = os.getenv('SECRET_KEY')
-DEBUG = os.getenv('DEBUG') == 'True'
+DEBUG = os.getenv('DEBUG') == 'False'
 EMAIL_HOST = 'smtp.gmail.com' # Ajoute cette ligne manquante
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
@@ -54,14 +54,12 @@ LOGOUT_REDIRECT_URL = 'gestion:login'
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '.onrender.com']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'gestion-clients-cimeti-re.onrender.com']
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 
 # Chemin absolu vers ton dossier static global à la racine du projet
-STATICFILES_DIRS = [
-    BASE_DIR / 'static',
-]
+STATICFILES_DIRS = [BASE_DIR / 'static',]
 
 # Dossier où les fichiers seront collectés pour la production
 STATIC_ROOT = BASE_DIR / 'staticfiles'
@@ -82,6 +80,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -156,4 +155,3 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
-STATIC_URL = 'static/'

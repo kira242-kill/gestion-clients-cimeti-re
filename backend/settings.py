@@ -12,18 +12,16 @@ from pathlib import Path
 import os
 #import sys
 from dotenv import load_dotenv
+import dj_database_url
 
 # Charger les variables du fichier .env
 load_dotenv()
 
 # Configuration forcée pour GDAL et GEOS
-if os.name == 'nt':
-    os.environ['GDAL_LIBRARY_PATH'] = r'C:\OSGeo4W\bin\gdal313.dll'
-    os.environ['GEOS_LIBRARY_PATH'] = r'C:\OSGeo4W\bin\geos_c.dll'
+#if os.name == 'nt':
+#    os.environ['GDAL_LIBRARY_PATH'] = r'C:\OSGeo4W\bin\gdal313.dll'
+#    os.environ['GEOS_LIBRARY_PATH'] = r'C:\OSGeo4W\bin\geos_c.dll'
 
-# Ajout du dossier bin au PATH système pour cette session
-if r'C:\OSGeo4W\bin' not in os.environ['PATH']:
-    os.environ['PATH'] = r'C:\OSGeo4W\bin;' + os.environ['PATH']
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -38,6 +36,12 @@ EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
+# Configuration Windows (pour ton PC uniquement)
+if os.name == 'nt' and DEBUG:
+    os.environ['GDAL_LIBRARY_PATH'] = r'C:\OSGeo4W\bin\gdal313.dll'
+    os.environ['GEOS_LIBRARY_PATH'] = r'C:\OSGeo4W\bin\geos_c.dll'
+    if r'C:\OSGeo4W\bin' not in os.environ['PATH']:
+        os.environ['PATH'] = r'C:\OSGeo4W\bin;' + os.environ['PATH']
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
@@ -50,7 +54,7 @@ LOGOUT_REDIRECT_URL = 'gestion:login'
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '.onrender.com']
 
 STATIC_URL = 'static/'
 
@@ -110,15 +114,12 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'gestion_cmt',
-        'USER': 'postgres',
-        'PASSWORD': os.getenv('DB_PASSWORD'),
-        'HOST': '127.0.0.1',
-        'PORT': '5432',
-    }
+    'default': dj_database_url.config(
+        default=os.getenv('DATABASE_URL'),
+        conn_max_age=600
+    )
 }
 
 # Password validation

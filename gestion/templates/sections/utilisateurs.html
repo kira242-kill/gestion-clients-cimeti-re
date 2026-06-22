@@ -1,0 +1,84 @@
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3>Gestion des Utilisateurs</h3>
+        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#userModal">
+            <i class="bi bi-plus-circle"></i> Ajouter un utilisateur
+        </button>
+    </div>
+
+    <table class="table table-hover table-striped">
+        <thead class="table-dark">
+            <tr><th>Nom</th><th>Email</th><th>Rôle</th><th>Statut</th><th>Actions</th></tr>
+        </thead>
+        <tbody id="user-table-body"></tbody>
+    </table>
+</div>
+
+<div class="modal fade" id="userModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header"><h5>Nouvel Utilisateur</h5></div>
+            <form id="form-add-user">
+                <div class="modal-body">
+                    <input type="text" id="username" class="form-control mb-2" placeholder="Nom d'utilisateur" required>
+                    <input type="email" id="email" class="form-control mb-2" placeholder="Email" required>
+                    <input type="password" id="password" class="form-control mb-2" placeholder="Mot de passe" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary">Sauvegarder</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    window.init_utilisateurs = function() {
+        chargerUtilisateurs();
+
+        document.getElementById('form-add-user').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = {
+                username: document.getElementById('username').value,
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value
+            };
+
+            const response = await fetch('/gestion/add-user/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                bootstrap.Modal.getInstance(document.getElementById('userModal')).hide();
+                chargerUtilisateurs(); // Recharge la liste
+                document.getElementById('form-add-user').reset();
+            } else {
+                alert("Erreur lors de l'ajout.");
+            }
+        });
+    };
+
+    function chargerUtilisateurs() {
+        fetch('/gestion/api/utilisateurs/')
+            .then(res => res.json())
+            .then(data => {
+                const body = document.getElementById('user-table-body');
+                body.innerHTML = data.map(user => `<tr>
+                    <td>${user.nom}</td>
+                    <td>${user.email}</td>
+                    <td>${user.role}</td>
+                    <td><span class="badge ${user.actif ? 'bg-success' : 'bg-danger'}">${user.actif ? 'Actif' : 'Bloqué'}</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-warning" onclick="toggleUser(${user.id})">Basculer</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteUser(${user.id})">Supprimer</button>
+                    </td>
+                </tr>`).join('');
+            });
+    }
+</script>

@@ -1,0 +1,75 @@
+<div class="container-fluid">
+    <div class="mb-4">
+        <h3>Demandes d'Attribution</h3>
+        <p class="text-muted">Traitement des requêtes en attente</p>
+    </div>
+
+    <div class="row" id="demandes-container">
+        </div>
+</div>
+
+<script>
+    window.init_demandes = function() {
+        chargerDemandes();
+    };
+
+    async function chargerDemandes() {
+        const container = document.getElementById('demandes-container');
+
+        try {
+            const response = await fetch('/gestion/api/demandes', {credentials: 'same-origin'});
+            const data = await response.json();
+
+            if (data.length === 0) {
+                container.innerHTML = '<p class="text-center" style="color: var(--text-main) !important;">Aucune demande en attente.</p>';
+                return;
+            }
+
+            container.innerHTML = data.map(d => `
+                <div class="col-md-6 mb-3">
+                    <div class="card shadow h-100 py-2" style="background-color: var(--card-bg) !important; border-left: .25rem solid #1cc88a !important;">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-uppercase mb-1" style="color: var(--text-main) !important; opacity: 0.8;">
+                                        N° Tombe: ${d.numero_tombe}
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold" style="color: var(--text-main) !important;">${d.email_client}</div>
+                                    <small style="color: var(--text-main) !important; opacity: 0.6;">Demandé le ${d.date_creation}</small>
+                                </div>
+                                <div class="col-auto">
+                                    <button class="btn btn-sm btn-outline-success" onclick="traiterDemande(${d.id}, 'Approuvée')">Valider</button>
+                                    <button class="btn btn-sm btn-outline-danger" onclick="traiterDemande(${d.id}, 'Rejetée')">Refuser</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        } catch (err) {
+            console.error("Erreur de chargement:", err);
+        }
+    }
+    async function traiterDemande(id, action) {
+        const response = await fetch(`/gestion/api/demandes/${id}/traiter?action=${action}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value 
+            }
+        });
+
+        if (response.ok) {
+            alert("Action effectuée avec succès !");
+
+            if (action === 'Approuvée') {
+                const link = document.createElement('a');
+                link.href = `/gestion/download-recu/${id}/`;
+                link.click();
+            }
+            
+            // Recharger la liste après traitement
+            chargerDemandes();
+        }
+    }
+</script>

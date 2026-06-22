@@ -1,0 +1,62 @@
+<div class="container py-4">
+    <h3 class="mb-4">Paramètres de l'application</h3>
+    <hr>
+    
+    <div class="mb-5">
+        <h5>Thème de l'interface</h5>
+        <div class="btn-group" role="group" id="theme-selector">
+            <button class="btn btn-outline-secondary" data-theme="theme-light">Clair</button>
+            <button class="btn btn-dark" data-theme="theme-dark-1">Sombre Bleu</button>
+            <button class="btn btn-dark" style="background: #1a1a2e;" data-theme="theme-dark-2">Sombre Nuit</button>
+            <button class="btn btn-dark" style="background: #0f3460;" data-theme="theme-dark-3">Sombre Marine</button>
+        </div>
+    </div>
+
+    <div class="mb-4">
+        <h5>Langue</h5>
+        <select class="form-select w-25" onchange="changeLanguage(this.value)">
+            <option value="fr">Français</option>
+            <option value="en">English</option>
+        </select>
+    </div>
+</div>
+
+<script>
+    // Initialisation appelée par loadSection quand cette page est chargée
+    window.init_parametres = function() {
+        // 1. Appliquer le thème stocké ou le thème par défaut
+        const savedTheme = localStorage.getItem('theme') || 'theme-light';
+        applyTheme(savedTheme);
+
+        // 2. Ajouter les écouteurs sur les boutons
+        const buttons = document.querySelectorAll('#theme-selector button');
+        buttons.forEach(button => {
+            button.addEventListener('click', function() {
+                const theme = this.getAttribute('data-theme');
+                applyTheme(theme);
+            });
+        });
+    };
+
+    // Fonction pour appliquer proprement le thème
+    function applyTheme(theme) {
+        const allThemes = ['theme-light', 'theme-dark-1', 'theme-dark-2', 'theme-dark-3'];
+        
+        // Supprime toutes les classes de thème existantes sur le body
+        allThemes.forEach(t => document.body.classList.remove(t));
+        
+        // Ajoute la classe choisie
+        document.body.classList.add(theme);
+        
+        // Sauvegarde le choix
+        localStorage.setItem('theme', theme);
+    }
+
+    // Gestion de la langue
+    function changeLanguage(lang) {
+        window.location.href = `/set-language/?lang=${lang}`;
+    }
+
+    // Lancer l'initialisation immédiatement au chargement de la section
+    window.init_parametres();
+</script>

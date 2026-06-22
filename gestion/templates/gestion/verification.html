@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vérification Scan | G_C</title>
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <style>
+        body { background-color: #e9ecef; }
+        .card { border-radius: 15px; border: none; }
+        .statut-badge { font-size: 1.5rem; font-weight: bold; padding: 10px 20px; border-radius: 50px; }
+    </style>
+</head>
+<body>
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card p-4 shadow-lg text-center">
+                <h3 class="mb-4 text-secondary">Vérification de Réservation</h3>
+                <form method="POST" class="mb-4">
+                    {% csrf_token %}
+                    <div class="input-group">
+                        <input type="text" name="numero_tombe" class="form-control" placeholder="Rechercher par N° Tombe..." required>
+                        <button class="btn btn-secondary" type="submit">Rechercher</button>
+                    </div>
+                </form>
+
+                {% if demande %}
+                    <div class="statut-badge ..."> {{ demande.statut_demande }} </div>
+                    {% elif request.method == 'POST' %}
+                    <div class="alert alert-danger">Aucune demande trouvée pour ce numéro.</div>
+                {% endif %}
+                <div class="mb-4">
+                    <p class="mb-1 text-muted">Statut de la demande #{{ demande.id }}</p>
+                    <div class="statut-badge 
+                        {% if demande.statut_demande == 'Approuvée' %}bg-success text-white
+                        {% else %}bg-warning text-dark{% endif %}">
+                        {{ demande.statut_demande }}
+                    </div>
+                </div>
+
+                <hr>
+
+                <div class="text-start">
+                    <p><strong>Client :</strong> {{ demande.email_client }}</p>
+                    <p><strong>Défunt :</strong> {{ demande.nom_defunt_prevu }} {{ demande.prenom_defunt_prevu }}</p>
+                    <p><strong>Tombe N° :</strong> {{ demande.tombe.numero_tombe }}</p>
+                    <p><strong>Date de création :</strong> {{ demande.date_creation|date:"d/m/Y" }}</p>
+                </div>
+
+                <div class="mt-4">
+                    <a href="/" class="btn btn-primary w-100">Retour au Dashboard</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+</body>
+</html>

@@ -1,0 +1,74 @@
+<style>
+    /* Style pour assurer la lisibilité sur fond clair */
+    #clientTable {
+        color: #212529 !important;
+        background-color: #ffffff !important;
+    }
+    /* Style pour les en-têtes */
+    #clientTable thead {
+        background-color: #343a40 !important;
+        color: #ffffff !important;
+    }
+    /* Espacement pour les cellules */
+    #clientTable td {
+        padding: 12px;
+        vertical-align: middle;
+    }
+</style>
+
+<div class="main-wrapper">
+    <h2 class="text-dark mb-4">Liste des clients inscrits</h2>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <input type="text" id="searchClient" class="form-control w-25 bg-light text-dark border" 
+               placeholder="Rechercher par email..." onkeyup="filterClients()" style="border-radius: 10px;">
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover table-striped table-bordered" id="clientTable">
+            <thead>
+                <tr>
+                    <th>Utilisateur</th>
+                    <th>Email</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for client in clients %}
+                <tr>
+                    <td>{{ client.username }}</td>
+                    <td class="client-email">{{ client.email }}</td>
+                    <td>
+                        <button onclick="confirmerSuppression('{% url 'gestion:supprimer_client' client.id %}')" 
+                                class="btn btn-danger btn-sm">Supprimer</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // Filtre de recherche dynamique
+    function filterClients() {
+        let input = document.getElementById("searchClient").value.toLowerCase();
+        let table = document.getElementById("clientTable");
+        let tr = table.getElementsByTagName("tr");
+
+        for (let i = 1; i < tr.length; i++) {
+            let emailTd = tr[i].getElementsByClassName("client-email")[0];
+            if (emailTd) {
+                let email = emailTd.innerText.toLowerCase();
+                tr[i].style.display = email.indexOf(input) > -1 ? "" : "none";
+            }
+        }
+    }
+
+    // Confirmation de suppression (qui agit comme un archivage via ta vue)
+    function confirmerSuppression(url) {
+        if (confirm("Êtes-vous sûr de vouloir archiver ce client ?")) {
+            window.location.href = url;
+        }
+    }
+</script>

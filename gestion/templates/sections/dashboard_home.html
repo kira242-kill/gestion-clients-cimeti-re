@@ -1,0 +1,64 @@
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h3 class="h3 mb-0 text-gray-800">Vue d'ensemble du Parc</h3>
+    </div>
+
+    <div class="row">
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Tombes Disponibles</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="kpi-dispo">0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-danger shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Tombes Occupées</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="kpi-occupe">0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Demandes en attente</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="kpi-demandes">0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    window.init_dashboard_home = async function() {
+        try {
+            const res = await fetch('/gestion/api/stats-globales/', {credentials: 'same-origin'});
+            if (!res.ok) throw new Error("Erreur serveur");
+            
+            const data = await res.json();
+            document.getElementById('kpi-dispo').innerText = data.dispo;
+            document.getElementById('kpi-occupe').innerText = data.occupe;
+            document.getElementById('kpi-demandes').innerText = data.demandes;
+        } catch (err) {
+            console.error("Dashboard error:", err);
+            // Optionnel : afficher un petit message d'erreur dans le conteneur
+            document.getElementById('kpi-dispo').innerText = "Err";
+        }
+    };
+</script>

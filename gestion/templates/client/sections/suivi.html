@@ -1,0 +1,86 @@
+<div class="card shadow-sm">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">Mes demandes et documents</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Défunt</th>
+                        <th>Statut</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for demande in demandes %}
+                    <tr>
+                        <td>
+                            <strong>{{ demande.prenom_defunt_prevu }} {{ demande.nom_defunt_prevu }}</strong><br>
+                            <small class="text-muted">Tombe: {{ demande.tombe.numero_tombe }}</small>
+                        </td>
+                        <td>
+                            <span class="badge {% if demande.statut_demande == 'Payé' %}bg-success{% elif demande.statut_demande == 'Devis envoyé' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+                                {{ demande.statut_demande }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if demande.devis_pdf %}
+                                <a href="{{ demande.devis_pdf.url }}" class="btn btn-sm btn-outline-info me-1" target="_blank">📄 Voir Devis</a>
+                            {% endif %}
+
+                            {% if demande.recu_pdf %}
+                                <a href="{{ demande.recu_pdf.url }}" class="btn btn-sm btn-outline-success" target="_blank">✅ Voir Reçu</a>
+                            {% elif demande.statut_demande == "Devis envoyé" %}
+                                <button class="btn btn-sm btn-primary" onclick="confirmerPaiement({{ demande.id }})">Payer maintenant</button>
+                            {% endif %}
+
+                            <button class="btn btn-sm btn-outline-danger ms-1" onclick="supprimerDemande({{ demande.id }})" title="Supprimer la demande">
+                                🗑️
+                            </button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" class="text-center text-muted">Aucune demande trouvée.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    function confirmerPaiement(demandeId) {
+        if (confirm("Confirmez-vous le paiement de cette demande pour obtenir votre reçu ?")) {
+            fetch(`/api/demandes/${demandeId}/confirmer-paiement`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                location.reload(); // Recharge la page pour afficher le bouton "Voir Reçu"
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                alert("Une erreur est survenue lors du paiement.");
+            });
+        }
+    }
+    async function supprimerDemande(id) {
+        if(confirm("Êtes-vous sûr de vouloir supprimer cette demande ?")) {
+            const res = await fetch(`/gestion/api/supprimer-demande/${id}`, {
+                method: 'DELETE'
+            });
+            if(res.ok) {
+                alert("Supprimé !");
+                window.location.reload();
+            }
+        }
+    }
+</script>

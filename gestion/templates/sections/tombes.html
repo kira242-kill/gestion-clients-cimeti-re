@@ -1,0 +1,130 @@
+<div class="mb-3">
+    <label>Filtrer par Zone :</label>
+    <select id="select-zone" class="form-select" onchange="filtrerParZone()">
+        <option value="">Toutes les zones</option>
+        </select>
+</div>
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3>Gestion du Parc Funéraire</h3>
+        <button class="btn btn-primary" onclick="chargerTombes()">Rafraîchir</button>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-4"><div class="card shadow-sm p-3"><canvas id="statChart"></canvas></div></div>
+        <div class="col-md-8">
+            <div class="row">
+                <div class="col-md-4"><div class="card bg-success text-white p-3 shadow-sm"><h6>Disponibles</h6><h3 id="count-dispo">0</h3></div></div>
+                <div class="col-md-4"><div class="card bg-warning text-dark p-3 shadow-sm"><h6>Réservées</h6><h3 id="count-reserve">0</h3></div></div>
+                <div class="col-md-4"><div class="card bg-secondary text-white p-3 shadow-sm"><h6>Occupées</h6><h3 id="count-occupe">0</h3></div></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr><th>N° Tombe</th><th>Statut</th><th>Actions</th></tr>
+                </thead>
+                <tbody id="tombes-body"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    window.init_tombes = function() {
+        chargerTombes();
+        updateChart();
+    };
+
+    let myChart = null;
+
+    // Suppression de la déclaration const dupliquée, on garde seulement la fonction
+    function getBadgeClass(statut) {
+        if (statut === 'Disponible') return 'bg-success';
+        if (statut === 'Réservée')   return 'bg-warning text-dark';
+        if (statut === 'Occupée')    return 'bg-danger';
+        return 'bg-secondary';
+    }
+
+    async function chargerTombes() {
+        // CORRECTION : /gestion/api/tombes
+        const response = await fetch('/gestion/api/tombes', {credentials: 'same-origin'});
+        const data = await response.json();
+        const body = document.getElementById('tombes-body');
+        
+        document.getElementById('count-dispo').innerText = data.filter(t => t.statut === 'Disponible').length;
+        document.getElementById('count-reserve').innerText = data.filter(t => t.statut === 'Réservée').length;
+        document.getElementById('count-occupe').innerText = data.filter(t => t.statut === 'Occupée').length;
+
+        body.innerHTML = data.map(tombe => `
+            <tr>
+                <td>${tombe.numero_tombe}</td>
+                <td><span class="badge ${getBadgeClass(tombe.statut)}">${tombe.statut}</span></td>
+                <td>
+                    <select class="form-select form-select-sm" onchange="updateStatut(${tombe.id}, this.value)">
+                        <option value="Disponible" ${tombe.statut === 'Disponible' ? 'selected' : ''}>Disponible</option>
+                        <option value="Réservée" ${tombe.statut === 'Réservée' ? 'selected' : ''}>Réservée</option>
+                        <option value="Occupée" ${tombe.statut === 'Occupée' ? 'selected' : ''}>Occupée</option>
+                    </select>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    // Charge les zones dans le menu déroulant au démarrage
+    async function chargerZones() {
+        const res = await fetch('/gestion/api/zones'); // Assure-toi que cette route existe dans api.py
+        const zones = await res.json();
+        const select = document.getElementById('select-zone');
+        zones.forEach(z => {
+            select.innerHTML += `<option value="${z.id}">${z.nom_zone}</option>`;
+        });
+    }
+
+    function filtrerParZone() {
+        const zoneId = document.getElementById('select-zone').value;
+        // Modifie ton fetch pour envoyer l'ID de la zone
+        chargerTombes(zoneId); 
+    }
+    
+    async function updateStatut(id, statut) {
+        // CORRECTION : /gestion/api/tombes/
+        await fetch(`/gestion/api/tombes/${id}/statut?nouveau_statut=${statut}`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value }
+        });
+        chargerTombes();
+        updateChart();
+    }
+
+    async function updateChart() {
+        const res = await fetch('/gestion/api/stats/tombes', {credentials: 'same-origin'});
+        const data = await res.json();
+        
+        // Mapping des couleurs par statut fixe
+        const colorMap = {
+            'Disponible': '#28a745', // Vert
+            'Réservée': '#ffc107',   // Jaune
+            'Occupée': '#dc3545'     // Rouge
+        };
+
+        const ctx = document.getElementById('statChart').getContext('2d');
+        if (myChart) { myChart.destroy(); }
+        
+        myChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: data.map(item => item.statut),
+                datasets: [{ 
+                    data: data.map(item => item.total), 
+                    // Assigne la couleur en fonction du statut, sinon gris par défaut
+                    backgroundColor: data.map(item => colorMap[item.statut] || '#6c757d') 
+                }]
+            }
+        });
+    }
+
+</script>

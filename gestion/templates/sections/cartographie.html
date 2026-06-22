@@ -1,0 +1,206 @@
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>Gestion Cartographique</h3>
+        
+        <div class="input-group w-auto">
+            <input type="text" id="search-input" class="form-control" placeholder="N° Tombe...">
+            <button class="btn btn-outline-secondary" onclick="searchMarker()">Rechercher</button>
+        </div>
+
+        <select id="filter-statut" class="form-select w-auto" onchange="filterMap()">
+            <option value="Tous">Tous les statuts</option>
+            <option value="Disponible">Disponibles</option>
+            <option value="Réservée">Réservées</option>
+            <option value="Occupée">Occupées</option>
+        </select>
+    </div>
+
+    <div id="map" style="height: 600px; width: 100%; border: 2px solid #ccc; border-radius: 8px;"></div>
+</div>
+
+<div class="modal fade" id="modalAttribution" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Attribuer une tombe</h5>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="tombeIdInput">
+        <div class="mb-3">
+          <label>Nom du défunt</label>
+          <input type="text" id="nomDefunt" class="form-control">
+        </div>
+        <div class="mb-3">
+          <label>Prénom du défunt</label>
+          <input type="text" id="prenomDefunt" class="form-control">
+        </div>
+        <div class="mb-3">
+          <label>Date enterrement</label>
+          <input type="date" id="dateEnterrement" class="form-control">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+        <button class="btn btn-primary" onclick="sauvegarderAttribution()">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+    // 1. Initialisation sécurisée des variables globales
+    window.map = window.map || null;
+    window.markersLayer = window.markersLayer || L.layerGroup();
+
+    // 2. Fonction d'initialisation appelée par le dashboard
+    window.init_cartographie = function() {
+        console.log("Initialisation carte...");
+        
+        if (typeof L === 'undefined') {
+            console.error("Leaflet n'est pas chargé !");
+            return;
+        }
+
+        // Nettoyage si la carte existe déjà
+        if (window.map !== null) {
+            window.map.remove();
+            window.map = null;
+        }
+
+        const container = document.getElementById('map');
+        if (!container) return;
+
+        window.map = L.map('map', {
+            center: [-4.75329, 11.93913],
+            zoom: 18
+        });
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap'
+        }).addTo(window.map);
+
+        window.markersLayer.addTo(window.map);
+
+        // Délai pour laisser le DOM calculer la taille de la DIV
+        setTimeout(() => {
+            window.map.invalidateSize();
+            loadMarkers('Tous');
+        }, 500);
+    };
+
+    // 3. Chargement des marqueurs sécurisé
+    async function loadMarkers(filter) {
+        window.markersLayer.clearLayers();
+        try {
+            const res = await fetch('/gestion/api/tombes');
+            const tombes = await res.json();
+            
+            tombes.forEach(t => {
+                // Conversion sécurisée des coordonnées en nombres
+                const lat = parseFloat(t.coordonnee_y);
+                const lng = parseFloat(t.coordonnee_x);
+
+                // Vérification que les coordonnées sont des nombres valides
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    
+                    if (filter === 'Tous' || t.statut === filter) {
+                        const color = t.statut === 'Disponible' ? '#28a745' : 
+                                      (t.statut === 'Réservée' ? '#ffc107' : '#dc3545');
+                        
+                        const marker = L.circleMarker([lat, lng], {
+                            color: color, 
+                            fillColor: color, 
+                            fillOpacity: 0.7, 
+                            radius: 8
+                        }).addTo(window.markersLayer);
+
+                        const popupContent = `
+                            <div>
+                                <strong>Tombe: ${t.numero_tombe}</strong><br>
+                                Statut: ${t.statut}<br>
+                                ${t.nom_defunt !== "Libre" ? `Défunt: ${t.nom_defunt}` : 
+                                `<button class="btn btn-sm btn-primary" onclick="ouvrirFormulaireAttribution(${t.id})">Attribuer</button>`}
+                            </div>
+                        `;
+                        marker.bindPopup(popupContent);
+                    }
+                } else {
+                    console.warn(`Tombe ${t.numero_tombe} ignorée : coordonnées invalides (${t.coordonnee_y}, ${t.coordonnee_x}).`);
+                }
+            });
+        } catch (err) { 
+            console.error("Erreur lors du chargement des tombes:", err); 
+        }
+    }
+
+    // 4. Fonctions d'interaction
+    function filterMap() { 
+        loadMarkers(document.getElementById('filter-statut').value); 
+    }
+
+    function searchMarker() {
+        const query = document.getElementById('search-input').value.trim();
+        let found = false;
+        window.markersLayer.eachLayer(layer => {
+            if (layer.getPopup().getContent().includes(query)) {
+                window.map.setView(layer.getLatLng(), 22);
+                layer.openPopup();
+                found = true;
+            }
+        });
+        if (!found) alert("Tombe non trouvée !");
+    }
+
+    function ouvrirModifier(tombeId, statutActuel) {
+        if (!confirm("Voulez-vous vraiment changer le statut de cette tombe ?")) return;
+        
+        const nouveauStatut = prompt("Nouveau statut (Disponible/Réservée/Occupée) :", statutActuel);
+        if (nouveauStatut) {
+            fetch(`/gestion/api/tombes/${tombeId}/statut?nouveau_statut=${nouveauStatut}`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value 
+                },
+                body: JSON.stringify({ statut: nouveauStatut })
+            })
+            .then(res => res.json())
+            .then(() => {
+                alert("Statut mis à jour !");
+                loadMarkers(document.getElementById('filter-statut').value);
+            })
+            .catch(err => console.error("Erreur de mise à jour:", err));
+        }
+    }
+
+    function ouvrirFormulaireAttribution(id) {
+        document.getElementById('tombeIdInput').value = id;
+        var myModal = new bootstrap.Modal(document.getElementById('modalAttribution'));
+        myModal.show();
+    }
+
+    async function sauvegarderAttribution() {
+        const id = document.getElementById('tombeIdInput').value;
+        const nom = document.getElementById('nomDefunt').value;
+        const prenom = document.getElementById('prenomDefunt').value;
+        const date = document.getElementById('dateEnterrement').value;
+
+        const response = await fetch(`/gestion/api/tombes/${id}/attribuer?nom=${nom}&prenom=${prenom}&date_ent=${date}`, {
+            method: 'POST',
+            headers: { 
+                // Ajoute cette ligne pour que Django autorise la requête
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value 
+            }
+        });
+
+        if (response.ok) {
+            alert("Attribution réussie !");
+            // Ferme la modale proprement
+            const modal = bootstrap.Modal.getInstance(document.getElementById('modalAttribution'));
+            modal.hide();
+            loadMarkers(document.getElementById('filter-statut').value); // Recharge juste les marqueurs au lieu de toute la page
+        } else {
+            alert("Erreur lors de l'attribution.");
+        }
+    }
+</script>

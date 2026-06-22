@@ -1,0 +1,63 @@
+<style>
+    /* Intégration de l'animation des bulles */
+    .hero-section {
+        background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%);
+        padding: 60px 20px;
+        text-align: center;
+        border-radius: 20px;
+        margin-bottom: 30px;
+    }
+
+    .service-card {
+        padding: 30px;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        transition: all 0.4s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .service-card::before {
+        content: '';
+        position: absolute;
+        width: 150px;
+        height: 150px;
+        background: radial-gradient(circle, rgba(0,123,255,0.1), transparent);
+        border-radius: 50%;
+        transform: scale(0);
+        transition: transform 0.6s ease;
+        top: -50px;
+        left: -50px;
+    }
+
+    .service-card:hover::before { transform: scale(3); }
+    .service-card:hover { transform: translateY(-10px); box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
+</style>
+
+<div class="hero-section">
+    <h1>Bienvenue sur G_C</h1>
+    <p>Service de gestion funéraire en ligne. La dignité et la simplicité, pour vous accompagner.</p>
+    <a href="?section=demande" class="btn btn-primary btn-lg mt-3">Faire une demande</a>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="service-card">
+            <h4>Réservation Simple</h4>
+            <p>Réservez une tombe en quelques clics via notre interface sécurisée.</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="service-card">
+            <h4>Paiement Sécurisé</h4>
+            <p>Obtenez vos devis et réglez vos frais directement en ligne.</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="service-card">
+            <h4>Suivi en temps réel</h4>
+            <p>Accédez à vos reçus et au statut de votre demande à tout moment.</p>
+        </div>
+    </div>
+</div>

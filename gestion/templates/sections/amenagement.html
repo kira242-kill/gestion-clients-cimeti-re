@@ -1,0 +1,116 @@
+<div class="container">
+    <h3>Aménagement de nouvelles zones</h3>
+    <form id="form-amenagement" class="row g-3 p-3 rounded shadow-sm" style="background-color: var(--card-bg) !important;">
+        {% csrf_token %}
+        <div class="col-md-3">
+            <label class="form-label">Nom de la Zone</label>
+            <input type="text" id="nom_zone" class="form-control" required>
+        </div>
+        <div class="col-md-2"><label class="form-label">Zone Long (m)</label><input type="number" id="zone_l" class="form-control" step="0.1" required></div>
+        <div class="col-md-2"><label class="form-label">Zone Larg (m)</label><input type="number" id="zone_w" class="form-control" step="0.1" required></div>
+        <div class="col-md-2"><label class="form-label">Caveau (m)</label><input type="number" id="caveau_l" class="form-control" value="2.5" step="0.1" required></div>
+        <div class="col-md-2"><label class="form-label">Allée (m)</label><input type="number" id="allee" class="form-control" value="0.8" step="0.1" required></div>
+        <div class="col-md-1 d-flex align-items-end">
+            <button type="button" class="btn btn-primary w-100" onclick="lancerGeneration()">Générer</button>
+        </div>
+    </form>
+    <div class="mt-4" id="zone-visualizer"></div>
+</div>
+
+<div class="container">
+    <h3>Gestion des Zones</h3>
+    <hr>
+    
+    <table class="table mt-4" style="color: var(--text-main) !important;">
+        <thead>
+            <tr style="color: var(--text-main) !important;">
+                <th>Nom</th>
+                <th>Superficie</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="zones-list"></tbody>
+    </table>
+</div>
+
+<script>
+    window.init_amenagement = function() {
+        console.log("Section Aménagement initialisée.");
+        chargerZones();
+    };
+
+    function lancerGeneration() {
+        // Récupération des valeurs avec validation simple
+        const formData = {
+            nom_zone: document.getElementById('nom_zone').value,
+            zone_l: parseFloat(document.getElementById('zone_l').value),
+            zone_w: parseFloat(document.getElementById('zone_w').value),
+            caveau_l: parseFloat(document.getElementById('caveau_l').value),
+            allee: parseFloat(document.getElementById('allee').value)
+        };
+
+        if (!formData.nom_zone || isNaN(formData.zone_l) || isNaN(formData.zone_w)) {
+            alert("Veuillez remplir correctement tous les champs.");
+            return;
+        }
+
+        // Appel à l'API
+        fetch('/gestion/api/generer-tombes/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify(formData),
+            credentials: 'include'
+        })
+        .then(res => res.json())
+        .then(data => {
+            const visualizer = document.getElementById('zone-visualizer');
+            if(data.status === 'success') {
+                visualizer.innerHTML = `<div class="alert alert-success">✅ ${data.message}</div>`;
+                
+                // Rafraîchissement automatique si la fonction existe
+                if (typeof chargerTombes === 'function') {
+                    chargerTombes();
+                }
+            } else {
+                visualizer.innerHTML = `<div class="alert alert-danger">❌ Erreur : ${data.message}</div>`;
+            }
+        })
+        .catch(error => {
+            console.error("Erreur:", error);
+            document.getElementById('zone-visualizer').innerHTML = `<div class="alert alert-danger">Erreur lors de la communication avec le serveur.</div>`;
+        });
+    }
+
+    // Charger la liste des zones au démarrage
+    async function chargerZones() {
+        const res = await fetch('/gestion/api/zones');
+        const zones = await res.json();
+        const tbody = document.getElementById('zones-list');
+        tbody.innerHTML = '';
+        zones.forEach(z => {
+            tbody.innerHTML += `
+                <tr>
+                    <td>${z.nom_zone}</td>
+                    <td>${z.superficie} m²</td>
+                    <td>
+                        <button class="btn btn-danger btn-sm" onclick="supprimerZone(${z.id})">Supprimer</button>
+                    </td>
+                </tr>`;
+        });
+    }
+
+    async function supprimerZone(zoneId) {
+        if(!confirm("Supprimer cette zone supprimera toutes ses tombes. Continuer ?")) return;
+        
+        await fetch(`/gestion/api/zones/${zoneId}`, {
+            method: 'DELETE',
+            headers: { 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value }
+        });
+        chargerZones(); // Recharge la liste
+    }
+
+    document.addEventListener('DOMContentLoaded', chargerZones);
+</script>

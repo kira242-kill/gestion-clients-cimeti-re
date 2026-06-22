@@ -1,0 +1,56 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestion Cimetière</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+<div class="container py-5">
+    <div class="text-center mb-5">
+        <h1 class="display-4 font-weight-bold text-primary">Gestion Cimetière Pro</h1>
+        <p class="lead text-muted">Plateforme numérique de gestion des concessions et suivi des demandes.</p>
+    </div>
+
+    <div class="row text-center mb-5">
+        <div class="col-md-4">
+            <div class="card p-3 border-0 shadow-sm">
+                <h5>📁 Gestion Simplifiée</h5>
+                <p>Suivi en temps réel des tombes, zones et inventaires.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card p-3 border-0 shadow-sm">
+                <h5>🛡️ Sécurité</h5>
+                <p>Données protégées et accès restreint uniquement au personnel.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card p-3 border-0 shadow-sm">
+                <h5>✨ Suivi Client</h5>
+                <p>Un portail dédié pour que les familles suivent leurs demandes.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-5 text-center">
+            <div class="card p-4 shadow">
+                <h4>Accès rapide</h4>
+                <hr>
+                <div class="d-grid gap-2">
+                    <a href="{% url 'gestion:login' %}" class="btn btn-outline-primary btn-lg">
+                        <i class="fas fa-user-tie"></i> Accès Agent
+                    </a>
+                    <a href="{% url 'gestion:client_login' %}" class="btn btn-success btn-lg">
+                        <i class="fas fa-user"></i> Portail Famille / Client
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

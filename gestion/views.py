@@ -23,9 +23,14 @@ from django.core.mail import send_mail
 
 def index(request):
     if request.user.is_authenticated:
-        return redirect('gestion:dashboard') # Redirige les connectés vers le dashboard
+        # Si c'est un staff (agent), on envoie vers le dashboard
+        if request.user.is_staff:
+            return redirect('gestion:dashboard')
+        # Sinon, on envoie vers le portail client
+        return redirect('gestion:portail_client')
     else:
-        return redirect('gestion:login')    # Redirige les autres vers la page de login
+        # Page d'accueil publique qui propose les deux liens
+        return render(request, 'home.html')
     
 # On vérifie que seul l'agent peut voir cette liste
 @user_passes_test(lambda u: u.is_staff)

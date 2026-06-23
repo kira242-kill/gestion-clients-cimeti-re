@@ -114,6 +114,10 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 
+if not DEBUG:
+    CSRF_TRUSTED_ORIGINS = ['https://gestion-clients-cimeti-re.onrender.com']
+    SECURE_SSL_REDIRECT = True # Force le HTTPS
+
 DATABASES = {
     'default': dj_database_url.config(
         default=os.getenv('DATABASE_URL'),

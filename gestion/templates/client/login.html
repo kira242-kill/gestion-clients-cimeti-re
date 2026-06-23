@@ -13,11 +13,6 @@
     </style>
 </head>
 <body>
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-danger">{{ message }}</div>
-        {% endfor %}
-    {% endif %}
     <div class="container">
         <div class="row justify-content-center mb-3">
             <div class="col-md-4">
@@ -27,6 +22,13 @@
         <div class="row justify-content-center">
             <div class="col-md-4 login-card">
                 <h3 class="text-center mb-4">Connexion Client</h3>
+                {% if messages %}
+                    <div class="mb-3">
+                        {% for message in messages %}
+                            <div class="alert alert-danger text-center">{{ message }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
                 <form id="loginForm" method="POST">
                     {% csrf_token %}
                     <div class="mb-3">

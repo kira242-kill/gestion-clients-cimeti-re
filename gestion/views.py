@@ -315,35 +315,45 @@ def client_logout(request):
 
 def client_login_view(request):
     if request.method == 'POST':
-        # ÉTAPE 1 : Le client soumet son email
+        # ÉTAPE 1 : Le client soumet son email (nouveau ou existant)
         if 'email' in request.POST and 'code' not in request.POST:
-            email = request.POST.get('email')
-            if Demande.objects.filter(email_client=email).exists():
-                # Génération du code OTP
-                code = str(random.randint(100000, 999999))
-                
-                # Stockage en session pour vérification
-                request.session['temp_email'] = email
-                request.session['otp_code'] = code
-                
-                # Envoi du mail
-                envoyer_email_otp(email, code)
-                return render(request, 'client/login_otp.html')
-            else:
-                messages.error(request, "Aucune demande trouvée avec cet email.")
+            email = request.POST.get('email', '').strip().lower()
+            
+            if not email:
+                messages.error(request, "Veuillez entrer une adresse email valide.")
+                return render(request, 'client/login.html')
+
+            # Génération du code OTP pour tout le monde (nouveau ou ancien)
+            code = str(random.randint(100000, 999999))
+            
+            # Stockage en session pour vérification
+            request.session['temp_email'] = email
+            request.session['otp_code'] = code
+            
+            # Envoi du mail
+            # Note : cela fonctionnera même si le client est nouveau
+            envoyer_email_otp(email, code)
+            
+            messages.success(request, "Un code de validation vous a été envoyé par email.")
+            return render(request, 'client/login_otp.html')
         
         # ÉTAPE 2 : Le client soumet le code reçu
         elif 'code' in request.POST:
             user_code = request.POST.get('code')
-            if user_code == request.session.get('otp_code'):
+            stored_code = request.session.get('otp_code')
+            
+            if stored_code and user_code == stored_code:
                 # Succès : on connecte le client
                 request.session['email_client'] = request.session.get('temp_email')
+                
                 # Nettoyage de la session
-                del request.session['otp_code']
-                del request.session['temp_email']
+                if 'otp_code' in request.session: del request.session['otp_code']
+                if 'temp_email' in request.session: del request.session['temp_email']
+                
                 return redirect('gestion:portail_client')
             else:
                 messages.error(request, "Code invalide. Veuillez réessayer.")
                 return render(request, 'client/login_otp.html')
                 
+    # Si GET, on affiche simplement la page de login
     return render(request, 'client/login.html')

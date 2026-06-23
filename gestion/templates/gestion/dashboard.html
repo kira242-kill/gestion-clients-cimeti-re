@@ -3,89 +3,64 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Agent - G_C</title>
     <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        /* Structure de base */
         body { display: flex; min-height: 100vh; overflow-x: hidden; transition: background-color 0.3s, color 0.3s; }
         #sidebar { min-width: 250px; max-width: 250px; background: #212529 !important; color: white !important; min-height: 100vh; }
-        #content { flex-grow: 1; padding: 20px; display: flex; flex-direction: column; }
+        #content { flex-grow: 1; padding: 20px; display: flex; flex-direction: column; width: 100%; }
         #content-area { flex-grow: 1; width: 100%; }
         
         .nav-link { color: #adb5bd; cursor: pointer; }
         .nav-link:hover { color: white; background: #343a40; }
 
-        /* Définition des variables de thèmes */
-        :root {
-            --bg-main: #f8f9fa;
-            --text-main: #212529;
-            --card-bg: #ffffff;
-            --input-bg: #ffffff;
-            --input-text: #000000;
-        }
-
-        body.theme-light { --bg-main: #f8f9fa; --text-main: #212529; --card-bg: #ffffff; --input-bg: #ffffff; --input-text: #000000; }
-        body.theme-dark-1 { --bg-main: #2c3e50; --text-main: #ffffff; --card-bg: #34495e; --input-bg: #2c3e50; --input-text: #ffffff; }
-        body.theme-dark-2 { --bg-main: #1a1a2e; --text-main: #ffffff; --card-bg: #16213e; --input-bg: #1a1a2e; --input-text: #ffffff; }
-        body.theme-dark-3 { --bg-main: #0f3460; --text-main: #ffffff; --card-bg: #1a1a2e; --input-bg: #0f3460; --input-text: #ffffff; }
-
-        /* Application des variables */
-        body { background-color: var(--bg-main) !important; color: var(--text-main) !important; }
-        .card, .table { background-color: var(--card-bg) !important; color: var(--text-main) !important; }
-        input, select, textarea { background-color: var(--input-bg) !important; color: var(--input-text) !important; border: 1px solid #666; }
-        
-        /* Utilitaires */
-        .border-left-success { border-left: .25rem solid #1cc88a !important; }
-        .border-left-danger { border-left: .25rem solid #e74a3b !important; }
-        .border-left-warning { border-left: .25rem solid #f6c23e !important; }
-
-        /* Définition des variables de thème */
-        :root {
-            --bg-main: #f8f9fa;
-            --text-main: #212529;
-            --card-bg: #ffffff;
-        }
-
-        /* Thèmes sombres */
+        :root { --bg-main: #f8f9fa; --text-main: #212529; --card-bg: #ffffff; }
         body.theme-dark-1 { --bg-main: #2c3e50; --text-main: #ffffff; --card-bg: #34495e; }
         body.theme-dark-2 { --bg-main: #1a1a2e; --text-main: #ffffff; --card-bg: #16213e; }
         body.theme-dark-3 { --bg-main: #0f3460; --text-main: #ffffff; --card-bg: #1a1a2e; }
 
-        /* Application automatique */
-        body { background-color: var(--bg-main) !important; color: var(--text-main) !important; transition: 0.3s; }
+        body { background-color: var(--bg-main) !important; color: var(--text-main) !important; }
+        .card, .table, .form-control { background-color: var(--card-bg) !important; color: var(--text-main) !important; border-color: #4b6584 !important; }
 
-        /* Force les éléments (cartes, tableaux, formulaires) à suivre le thème */
-        .card, .table, .form-control { 
-            background-color: var(--card-bg) !important; 
-            color: var(--text-main) !important; 
-            border-color: #4b6584 !important; 
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            #sidebar { min-width: 100% !important; max-width: 100% !important; min-height: auto; }
+            #content { padding: 10px; }
         }
-
-        /* Force les textes grisés à devenir lisibles */
-        .text-muted, .text-gray-800 { color: var(--text-main) !important; opacity: 0.8; }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
-    <div id="sidebar" class="p-3">
-        <h3>G_C Admin</h3>
-        <hr>
-        <ul class="nav flex-column">
-            <li class="nav-item"><a class="nav-link" onclick="loadSection('dashboard_home')">Tableau de bord</a></li>
-            <li class="nav-item"><a class="nav-link" onclick="loadSection('tombes')">Gestion Tombes</a></li>
-            <li class="nav-item"><a class="nav-link" onclick="loadSection('demandes')">Demandes</a></li>
-            <li class="nav-item"><a class="nav-link" onclick="loadSection('cartographie')">Cartographie</a></li>
-            <li class="nav-item"><a class="nav-link" onclick="loadSection('utilisateurs')">Utilisateurs</a></li>
-            {% if user.is_staff %}
-            <li class="nav-item"><a class="nav-link" onclick="loadSection('gestion_clients')">Gestion des Clients</a></li>
-            {% endif %}
-            <li class="nav-item"><a class="nav-link" onclick="loadSection('amenagement')">Aménagement</a></li>
-            <li class="nav-item"><a class="nav-link" onclick="loadSection('parametres')">Paramètres</a></li>
-            <li class="nav-item"><a class="nav-link" onclick="loadSection('historique')">Historique</a></li>
-            <li class="nav-item mt-5"><a href="/gestion/logout/" class="nav-link text-danger">Déconnexion</a></li>
-        </ul>
+    <nav class="navbar navbar-dark bg-dark d-md-none p-2">
+        <button class="btn btn-outline-light" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebar">☰ Menu</button>
+        <span class="navbar-brand ms-3">G_C Admin</span>
+    </nav>
+
+    <div class="offcanvas-md offcanvas-start bg-dark text-white" id="sidebar" tabindex="-1">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title">Menu Admin</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" data-bs-target="#sidebar"></button>
+        </div>
+        <div class="offcanvas-body flex-column p-3">
+            <h3>G_C Admin</h3><hr>
+            <ul class="nav flex-column">
+                <li class="nav-item"><a class="nav-link" onclick="loadSection('dashboard_home')">Tableau de bord</a></li>
+                <li class="nav-item"><a class="nav-link" onclick="loadSection('tombes')">Gestion Tombes</a></li>
+                <li class="nav-item"><a class="nav-link" onclick="loadSection('demandes')">Demandes</a></li>
+                <li class="nav-item"><a class="nav-link" onclick="loadSection('cartographie')">Cartographie</a></li>
+                <li class="nav-item"><a class="nav-link" onclick="loadSection('utilisateurs')">Utilisateurs</a></li>
+                {% if user.is_staff %}
+                <li class="nav-item"><a class="nav-link" onclick="loadSection('gestion_clients')">Gestion des Clients</a></li>
+                {% endif %}
+                <li class="nav-item"><a class="nav-link" onclick="loadSection('amenagement')">Aménagement</a></li>
+                <li class="nav-item"><a class="nav-link" onclick="loadSection('parametres')">Paramètres</a></li>
+                <li class="nav-item"><a class="nav-link" onclick="loadSection('historique')">Historique</a></li>
+                <li class="nav-item mt-5"><a href="/gestion/logout/" class="nav-link text-danger">Déconnexion</a></li>
+            </ul>
+        </div>
     </div>
 
     <div id="content">

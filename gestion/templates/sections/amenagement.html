@@ -69,7 +69,7 @@
             const visualizer = document.getElementById('zone-visualizer');
             if(data.status === 'success') {
                 visualizer.innerHTML = `<div class="alert alert-success">✅ ${data.message}</div>`;
-                
+
                 // Rafraîchissement automatique si la fonction existe
                 if (typeof chargerTombes === 'function') {
                     chargerTombes();

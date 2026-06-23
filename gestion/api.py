@@ -181,7 +181,7 @@ def traiter_demande(request, demande_id: int, action: str):
         return {"message": "Rejeté"}
     raise HttpError(400, "Action non reconnue")
 
-@api.post("/zones")
+@api.post("/zones", auth=None)
 def creer_zone(request, data: ZoneSchema):
     z = Zone.objects.create(**data.dict())
     return {"id": z.id, "message": "Succès"}
@@ -191,7 +191,7 @@ def logout_agent(request):
     logout(request)
     return {"message": "Déconnexion réussie"}
 
-@api.post("/generer-tombes/")
+@api.post("/generer-tombes/", auth=None)
 def generer_tombes(request, data: AmenagementSchema):
     nouvelle_zone = Zone.objects.create(
         nom_zone=data.nom_zone,

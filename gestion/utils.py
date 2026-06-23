@@ -8,6 +8,9 @@ from .models import HistoriqueAction
 from django.core.files.base import ContentFile
 from reportlab.lib.utils import ImageReader
 from django.core.mail import send_mail
+import logging
+
+logger = logging.getLogger(__name__)
 
 def generer_document_pdf(demande, type_doc="REÇU"):
     buffer = BytesIO()
@@ -91,7 +94,12 @@ def enregistrer_action(user, action, details):
 
 
 def envoyer_email_otp(email, code):
-    subject = "Votre code de connexion G_C"
-    message = f"Bonjour, votre code de validation pour accéder à votre espace client est : {code}. Ce code expire dans 10 minutes."
-    from_email = 'noreply@tondomaine.com'
-    send_mail(subject, message, from_email, [email], fail_silently=False)
+    try:
+        subject = 'Votre code de vérification'
+        message = f'Votre code OTP est : {code}'
+        from_email = 'ton_email@gmail.com' # Doit correspondre à EMAIL_HOST_USER
+        
+        # On met fail_silently=True pour éviter le crash du serveur
+        send_mail(subject, message, from_email, [email], fail_silently=True)
+    except Exception as e:
+        logger.error(f"Erreur envoi email: {e}")

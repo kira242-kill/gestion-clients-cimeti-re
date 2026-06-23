@@ -28,14 +28,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # --- Configuration des variables d'environnement ---
 SECRET_KEY = os.getenv('SECRET_KEY')
-DEBUG = os.getenv('DEBUG', 'False') == 'True'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
+DEBUG = os.getenv('DEBUG', 'False') == 'True'      
+EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp-relay.brevo.com')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
 EMAIL_USE_TLS = True
-EMAIL_TIMEOUT = 30  # Attend jusqu'à 30 secondes avant d'abandonner
+EMAIL_TIMEOUT = 30
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
-EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
 # Configuration Windows (pour ton PC uniquement)
 if os.name == 'nt' and DEBUG:

@@ -6,45 +6,35 @@
     <title>Accès Client | G_C</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { background: #1a2a34; color: white; display: flex; align-items: center; min-height: 100vh; }
-        .login-card { background: rgba(255,255,255,0.05); border-radius: 15px; padding: 30px; box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
-        .btn-back { color: #bdc3c7; text-decoration: none; font-size: 0.9rem; }
-        .btn-back:hover { color: #ffffff; }
+        :root { --bg-dark: #1a2a34; --text-main: #ffffff; }
+        body { background-color: var(--bg-dark); color: var(--text-main); font-family: sans-serif; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 10px; }
+        .login-card { background: rgba(255,255,255,0.05); border-radius: 15px; padding: 30px; box-shadow: 0 10px 20px rgba(0,0,0,0.3); width: 100%; max-width: 400px; }
+        .btn-back { color: #bdc3c7; text-decoration: none; font-size: 0.9rem; margin-bottom: 1rem; display: block; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="row justify-content-center mb-3">
-            <div class="col-md-4">
-                <a href="{% url 'index' %}" class="btn-back">← Retour à l'accueil</a>
+    <div class="login-card">
+        <a href="{% url 'index' %}" class="btn-back">← Retour à l'accueil</a>
+        <h3 class="text-center mb-4">Connexion Client</h3>
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-info text-center">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+        <form id="loginForm" method="POST">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label class="form-label">Email de suivi</label>
+                <input type="email" name="email" class="form-control" required>
             </div>
-        </div>
-        <div class="row justify-content-center">
-            <div class="col-md-4 login-card">
-                <h3 class="text-center mb-4">Connexion Client</h3>
-                {% if messages %}
-                    <div class="mb-3">
-                        {% for message in messages %}
-                            <div class="alert alert-danger text-center">{{ message }}</div>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-                <form id="loginForm" method="POST">
-                    {% csrf_token %}
-                    <div class="mb-3">
-                        <label class="form-label">Email de suivi</label>
-                        <input type="email" name="email" id="emailInput" class="form-control" required>
-                    </div>
-                    <button type="submit" class="btn btn-success w-100" id="submitBtn">Se connecter</button>
-                </form>
-            </div>
-        </div>
+            <button type="submit" id="submitBtn" class="btn btn-success w-100">Envoyer le code OTP</button>
+        </form>
     </div>
     <script>
         document.getElementById('loginForm').addEventListener('submit', function() {
             const btn = document.getElementById('submitBtn');
             btn.disabled = true;
-            btn.innerHTML = 'Envoi...';
+            btn.innerText = 'Envoi en cours...';
         });
     </script>
 </body>

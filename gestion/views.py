@@ -314,6 +314,7 @@ def client_logout(request):
 
 
 def client_login_view(request):
+    print(f"DEBUG_SMTP: Host={settings.EMAIL_HOST}, User={settings.EMAIL_HOST_USER}, Pwd_len={len(settings.EMAIL_HOST_PASSWORD) if settings.EMAIL_HOST_PASSWORD else 0}")
     if request.method == 'POST':
         # ÉTAPE 1 : Le client soumet son email (nouveau ou existant)
         if 'email' in request.POST and 'code' not in request.POST:

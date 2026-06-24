@@ -19,7 +19,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import user_passes_test
 import random
 from django.core.mail import send_mail
-
+from django.conf import settings
 
 def index(request):
     if request.user.is_authenticated:

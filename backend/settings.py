@@ -60,7 +60,8 @@ ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'gestion-clients-cimeti-re.onrender.c
 STATIC_URL = '/static/'
 
 # Chemin absolu vers ton dossier static global à la racine du projet
-STATICFILES_DIRS = [BASE_DIR / 'static',]
+# Dans settings.py
+STATICFILES_DIRS = [BASE_DIR / 'gestion' / 'static',]
 
 # Dossier où les fichiers seront collectés pour la production
 STATIC_ROOT = BASE_DIR / 'staticfiles'

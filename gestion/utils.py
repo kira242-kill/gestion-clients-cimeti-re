@@ -9,6 +9,7 @@ from django.core.files.base import ContentFile
 from reportlab.lib.utils import ImageReader
 from django.core.mail import send_mail
 import logging
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
@@ -97,9 +98,11 @@ def envoyer_email_otp(email, code):
     try:
         subject = 'Votre code de vérification'
         message = f'Votre code OTP est : {code}'
-        from_email = 'ton_email@gmail.com' # Doit correspondre à EMAIL_HOST_USER
         
-        # On met fail_silently=True pour éviter le crash du serveur
-        send_mail(subject, message, from_email, [email], fail_silently=True)
+        # UTILISE LA VARIABLE DE CONFIGURATION !
+        from_email = settings.EMAIL_HOST_USER 
+        
+        # Enlève fail_silently=True pour voir si ça bloque
+        send_mail(subject, message, from_email, [email], fail_silently=False)
     except Exception as e:
         logger.error(f"Erreur envoi email: {e}")

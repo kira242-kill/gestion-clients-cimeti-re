@@ -10,6 +10,7 @@ from reportlab.lib.utils import ImageReader
 from django.core.mail import send_mail
 import logging
 from django.conf import settings
+import socket
 
 logger = logging.getLogger(__name__)
 
@@ -96,13 +97,18 @@ def enregistrer_action(user, action, details):
 
 def envoyer_email_otp(email, code):
     try:
+        # Test de connectivité simple avant d'envoyer
+        socket.setdefaulttimeout(10)
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect((settings.EMAIL_HOST, settings.EMAIL_PORT))
+        s.close()
+        
+        # Si ça passe, on tente l'envoi
         subject = 'Votre code de vérification'
         message = f'Votre code OTP est : {code}'
-        
-        # UTILISE LA VARIABLE DE CONFIGURATION !
-        from_email = settings.EMAIL_HOST_USER 
-        
-        # Enlève fail_silently=True pour voir si ça bloque
+        from_email = settings.EMAIL_HOST_USER
         send_mail(subject, message, from_email, [email], fail_silently=False)
+        
     except Exception as e:
-        logger.error(f"Erreur envoi email: {e}")
+        # On log l'erreur exacte
+        print(f"DEBUG_CONNECTION_ERROR: {str(e)}")

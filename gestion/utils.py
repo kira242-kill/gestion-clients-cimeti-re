@@ -11,6 +11,9 @@ from django.core.mail import send_mail
 import logging
 from django.conf import settings
 import socket
+import sib_api_v3_sdk
+from sib_api_v3_sdk.rest import ApiException
+
 
 logger = logging.getLogger(__name__)
 
@@ -94,21 +97,22 @@ def envoyer_document_par_mail(demande, type_doc="REÇU"):
 def enregistrer_action(user, action, details):
     HistoriqueAction.objects.create(agent=user, action=action, details=details)
 
-
 def envoyer_email_otp(email, code):
+    configuration = sib_api_v3_sdk.Configuration()
+    configuration.api_key['api-key'] = settings.EMAIL_HOST_PASSWORD 
+    
+    api_instance = sib_api_v3_sdk.TransactionalEmailsApi(sib_api_v3_sdk.ApiClient(configuration))
+    
+    subject = "Votre code de vérification"
+    html_content = f"<html><body>Votre code OTP est : <strong>{code}</strong></body></html>"
+    # IMPORTANT : l'email ici doit être celui validé sur Brevo
+    sender = {"name": "Gestion Cimetière", "email": "kirarider0@gmail.com"} 
+    to = [{"email": email}]
+    
+    send_smtp_email = sib_api_v3_sdk.SendSmtpEmail(to=to, html_content=html_content, sender=sender, subject=subject)
+    
     try:
-        # Test de connectivité simple avant d'envoyer
-        socket.setdefaulttimeout(10)
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.connect((settings.EMAIL_HOST, settings.EMAIL_PORT))
-        s.close()
-        
-        # Si ça passe, on tente l'envoi
-        subject = 'Votre code de vérification'
-        message = f'Votre code OTP est : {code}'
-        from_email = settings.EMAIL_HOST_USER
-        send_mail(subject, message, from_email, [email], fail_silently=False)
-        
-    except Exception as e:
-        # On log l'erreur exacte
-        print(f"DEBUG_CONNECTION_ERROR: {str(e)}")
+        api_instance.send_transac_email(send_smtp_email)
+        print("Succès : Email envoyé via API")
+    except ApiException as e:
+        print(f"Erreur API Brevo: {e}")

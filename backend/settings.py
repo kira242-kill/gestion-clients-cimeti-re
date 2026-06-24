@@ -30,13 +30,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY')
 DEBUG = os.getenv('DEBUG', 'False') == 'True'      
 EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp-relay.brevo.com')
-EMAIL_PORT = int(os.getenv('EMAIL_PORT', 465)) # Il prendra la valeur 465 de Render
-EMAIL_USE_TLS = False  # DOIT ÊTRE FALSE pour le port 465
-EMAIL_USE_SSL = True   # DOIT ÊTRE TRUE pour le port 465
+#EMAIL_PORT = int(os.getenv('EMAIL_PORT', 465)) # Il prendra la valeur 465 de Render
+#EMAIL_USE_TLS = False  # DOIT ÊTRE FALSE pour le port 465
+#EMAIL_USE_SSL = True   # DOIT ÊTRE TRUE pour le port 465
 EMAIL_TIMEOUT = 30
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+#EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
 # Configuration Windows (pour ton PC uniquement)
 if os.name == 'nt' and DEBUG:
@@ -62,7 +62,7 @@ STATIC_URL = '/static/'
 
 # Chemin absolu vers ton dossier static global à la racine du projet
 # Dans settings.py
-STATICFILES_DIRS = [BASE_DIR / 'gestion' / 'static',]
+STATICFILES_DIRS = [BASE_DIR / 'static',]
 
 # Dossier où les fichiers seront collectés pour la production
 STATIC_ROOT = BASE_DIR / 'staticfiles'

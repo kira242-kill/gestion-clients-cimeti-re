@@ -30,8 +30,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY')
 DEBUG = os.getenv('DEBUG', 'False') == 'True'      
 EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp-relay.brevo.com')
-EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
-EMAIL_USE_TLS = True
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', 465)) # Il prendra la valeur 465 de Render
+EMAIL_USE_TLS = False  # DOIT ÊTRE FALSE pour le port 465
+EMAIL_USE_SSL = True   # DOIT ÊTRE TRUE pour le port 465
 EMAIL_TIMEOUT = 30
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')

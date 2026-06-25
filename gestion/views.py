@@ -130,6 +130,9 @@ def render_section(request, section):
     # Initialisation du contexte
     context = {}
 
+    if section == 'demandes':
+        context['demandes'] = Demande.objects.all().order_by('-id')
+        
     # Logique spécifique pour chaque section nécessitant des données dynamiques
     if section in ['liste_clients', 'gestion_clients']:
         # Dans render_section, pour la section liste_clients

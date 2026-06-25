@@ -120,11 +120,13 @@
     };
     
     try {
+        // Remplace ton bloc fetch actuel par ceci :
         const res = await fetch('/gestion/api/creer-demande', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                // N'oublie pas d'ajouter ton header CSRF ici si tu utilises Django sans désactiver CSRF
+                // Ajout du jeton CSRF ici :
+                'X-CSRFToken': '{{ csrf_token }}' 
             },
             body: JSON.stringify(data)
         });

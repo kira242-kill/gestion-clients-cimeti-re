@@ -1,0 +1,8 @@
+body { background: linear-gradient(135deg, #1a2a34 0%, #2c3e50 100%) !important; min-height: 100vh; color: #d1d8e0 !important; padding: 15px; }
+        .main-wrapper { background: rgba(255, 255, 255, 0.08) !important; backdrop-filter: blur(10px); border-radius: 15px; padding: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
+        h1, h2, h3 { color: #ffffff !important; }
+        /* Responsive Tabs */
+        .nav-tabs { flex-wrap: wrap; }
+        .nav-link { color: #a4b0be !important; border: none !important; }
+        .nav-link.active { color: #3498db !important; border-bottom: 2px solid #3498db !important; }
+        @media (max-width: 576px) { .main-wrapper { padding: 15px; } }

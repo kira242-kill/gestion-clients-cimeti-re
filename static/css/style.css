@@ -12,3 +12,4 @@ body { background: linear-gradient(135deg, #1a2a34 0%, #2c3e50 100%) !important;
     border: 1px solid #3498db; /* Ajoute une bordure visible */
 }
 .card p { color: #ecf0f1 !important; }
+.text-center .mb-5 p{color: #ecf0f1 !important;}

@@ -132,7 +132,7 @@ def render_section(request, section):
 
     if section == 'demandes':
         context['demandes'] = Demande.objects.all().order_by('-id')
-        
+
     # Logique spécifique pour chaque section nécessitant des données dynamiques
     if section in ['liste_clients', 'gestion_clients']:
         # Dans render_section, pour la section liste_clients
@@ -334,6 +334,9 @@ def client_login_view(request):
             # Stockage en session pour vérification
             request.session['temp_email'] = email
             request.session['otp_code'] = code
+
+            request.session.modified = True  # force Django à sauvegarder la session
+            print(f"DEBUG: Session sauvegardée. Session ID={request.session.session_key}")
             
             # Envoi du mail
             # Note : cela fonctionnera même si le client est nouveau

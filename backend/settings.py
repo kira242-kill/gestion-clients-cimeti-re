@@ -160,4 +160,15 @@ USE_TZ = True
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 SESSION_COOKIE_HTTPONLY = True
+
+# 1. Force le HTTPS pour les cookies
 SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+
+# 2. Permet au cookie d'être lu malgré les redirections (Crucial !)
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SAMESITE = 'Lax'
+
+# 3. Assure-toi que ton domaine est bien reconnu
+# Si tu as une erreur 403 CSRF, ajoute ceci :
+CSRF_TRUSTED_ORIGINS = ['https://gestion-clients-cimeti-re.onrender.com']

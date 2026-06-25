@@ -170,10 +170,21 @@ def creer_demande(request, data: DemandeSchema):
     t.save()
     return {"message": "Réservation enregistrée"}
 
-@api.get("/demandes", response=list[DemandeOut])
-def lister_demandes(request):
-    return Demande.objects.filter(statut_demande='En attente')
 
+@api.get("/demandes", response=list[dict], auth=None) # Change list[DemandeOut] par list[dict] pour plus de souplesse
+def lister_demandes(request):
+    # On récupère les données avec les relations nécessaires
+    demandes = Demande.objects.filter(statut_demande='En attente')
+    res = []
+    for d in demandes:
+        res.append({
+            "id": d.id,
+            "email_client": d.email_client,
+            "numero_tombe": d.tombe.numero_tombe, # Assure que ce champ existe
+            "date_creation": d.date_creation.strftime("%d/%m/%Y") if d.date_creation else "N/A"
+        })
+    return res
+    
 @csrf_exempt
 @api.post("/demandes/{demande_id}/traiter")
 def traiter_demande(request, demande_id: int, action: str):

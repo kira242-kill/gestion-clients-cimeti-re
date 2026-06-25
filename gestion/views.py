@@ -161,10 +161,17 @@ def mettre_a_jour_statuts_automatique():
         tombe.statut = 'Occupée'
         tombe.save()
 
+
+# 1. Déconnexion pour les AGENTS (Admin/Staff)
 def logout_view(request):
-    logout(request)
+    logout(request)  # Déconnecte uniquement l'utilisateur Django
     return redirect('gestion:login')
 
+# 2. Déconnexion pour les CLIENTS (Portail)
+def client_logout(request):
+    logout(request)  # Au cas où un client aurait aussi un compte Django
+    request.session.flush()  # Nettoie TOUT (email_client + autres variables)
+    return redirect('gestion:client_login')
 
 @login_required
 def api_tombes(request):
@@ -306,12 +313,6 @@ def portail_client(request):
 
 def login_page(request):
     return render(request, 'core/login.html')
-
-def client_logout(request):
-    """Déconnecte le client en supprimant sa session."""
-    request.session.flush()
-    return redirect('gestion:portail_client')
-
 
 def client_login_view(request):
     print(f"DEBUG_SMTP: Host={settings.EMAIL_HOST}, User={settings.EMAIL_HOST_USER}, Pwd_len={len(settings.EMAIL_HOST_PASSWORD) if settings.EMAIL_HOST_PASSWORD else 0}")

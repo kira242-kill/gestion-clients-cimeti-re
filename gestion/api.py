@@ -144,7 +144,7 @@ def telecharger_devis(request, demande_id: int):
 
 # --- API PROTÉGÉES (auth=AuthBearer par défaut) ---
 
-@api.post("/creer-demande")
+@api.post("/creer-demande", auth=None)
 def creer_demande(request, data: DemandeSchema):
     t = get_object_or_404(Tombe, id=data.tombe_id)
     if t.statut != 'Disponible':
@@ -169,7 +169,7 @@ def creer_demande(request, data: DemandeSchema):
     t.statut = 'Réservée'
     t.save()
     return {"message": "Réservation enregistrée"}
-    
+
 @api.get("/demandes", response=list[DemandeOut])
 def lister_demandes(request):
     return Demande.objects.filter(statut_demande='En attente')

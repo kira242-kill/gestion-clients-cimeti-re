@@ -1,21 +1,36 @@
 <style>
-    /* Intégration de l'animation des bulles */
+    /* Hero Section : Ton dégradé bleu-nuit cohérent avec le reste du site */
     .hero-section {
-        background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%);
+        background: linear-gradient(135deg, #1a2a34 0%, #2c3e50 100%);
         padding: 60px 20px;
         text-align: center;
         border-radius: 20px;
         margin-bottom: 30px;
+        color: #ffffff; /* Texte en blanc */
     }
 
+    /* Service Card : Fond semi-transparent sombre, bordure légère et texte blanc */
     .service-card {
         padding: 30px;
-        background: white;
+        background: rgba(255, 255, 255, 0.05); /* Fond très sombre mais lisible */
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 15px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         transition: all 0.4s ease;
         position: relative;
         overflow: hidden;
+        color: #ffffff; /* Couleur globale du texte dans la carte */
+    }
+
+    .service-card h4 {
+        color: #3498db; /* Titre bleu pour contraster avec le fond sombre */
+        margin-bottom: 15px;
+    }
+
+    .service-card p {
+        color: #d1d8e0; /* Gris clair pour le texte, très lisible */
+        font-size: 0.95rem;
     }
 
     .service-card::before {
@@ -23,7 +38,7 @@
         position: absolute;
         width: 150px;
         height: 150px;
-        background: radial-gradient(circle, rgba(0,123,255,0.1), transparent);
+        background: radial-gradient(circle, rgba(52, 152, 219, 0.2), transparent);
         border-radius: 50%;
         transform: scale(0);
         transition: transform 0.6s ease;
@@ -32,7 +47,11 @@
     }
 
     .service-card:hover::before { transform: scale(3); }
-    .service-card:hover { transform: translateY(-10px); box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
+    .service-card:hover { 
+        transform: translateY(-10px); 
+        box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+        background: rgba(255, 255, 255, 0.1); /* S'illumine légèrement au survol */
+    }
 </style>
 
 <div class="hero-section">

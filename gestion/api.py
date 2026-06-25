@@ -149,12 +149,27 @@ def creer_demande(request, data: DemandeSchema):
     t = get_object_or_404(Tombe, id=data.tombe_id)
     if t.statut != 'Disponible':
         raise HttpError(400, "Indisponible")
-    user, created = User.objects.get_or_create(username=data.email_client, defaults={'email': data.email_client})
-    d = Demande.objects.create(email_client=data.email_client, nom_defunt_prevu=data.nom_defunt_prevu, prenom_defunt_prevu=data.prenom_defunt_prevu, date_enterrement=data.date_enterrement, tombe=t, statut_demande='En attente', montant_paye=0)
+    
+    # 1. On ne crée l'utilisateur que s'il n'existe pas, sans bloquer la demande
+    user, created = User.objects.get_or_create(
+        username=data.email_client, 
+        defaults={'email': data.email_client}
+    )
+    
+    # 2. Création de la demande sans condition d'existence préalable
+    d = Demande.objects.create(
+        email_client=data.email_client, 
+        nom_defunt_prevu=data.nom_defunt_prevu, 
+        prenom_defunt_prevu=data.prenom_defunt_prevu, 
+        date_enterrement=data.date_enterrement, 
+        tombe=t, 
+        statut_demande='En attente'
+    )
+    
     t.statut = 'Réservée'
     t.save()
     return {"message": "Réservation enregistrée"}
-
+    
 @api.get("/demandes", response=list[DemandeOut])
 def lister_demandes(request):
     return Demande.objects.filter(statut_demande='En attente')

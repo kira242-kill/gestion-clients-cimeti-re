@@ -318,50 +318,65 @@ def login_page(request):
     return render(request, 'core/login.html')
 
 def client_login_view(request):
+    """
+    Vue de connexion client par OTP avec gestion stricte de la session.
+    """
+    # Debug pour vérifier que les paramètres SMTP sont bien lus par le serveur
     print(f"DEBUG_SMTP: Host={settings.EMAIL_HOST}, User={settings.EMAIL_HOST_USER}, Pwd_len={len(settings.EMAIL_HOST_PASSWORD) if settings.EMAIL_HOST_PASSWORD else 0}")
+    
     if request.method == 'POST':
-        # ÉTAPE 1 : Le client soumet son email (nouveau ou existant)
-        if 'email' in request.POST and 'code' not in request.POST:
+        # 1. PRIORITÉ : Vérification du code OTP (Étape 2)
+        if 'code' in request.POST:
+            user_code = request.POST.get('code', '').strip()
+            stored_code = request.session.get('otp_code')
+            
+            # Debug : Permet de voir précisément ce qui bloque dans les logs Render
+            print(f"DEBUG_OTP: Code Saisi='{user_code}', Code Session='{stored_code}'")
+            print(f"DEBUG_SESSION: Session ID={request.session.session_key}")
+            
+            # Comparaison sécurisée (converti en str pour éviter les erreurs de type)
+            if stored_code and str(user_code) == str(stored_code):
+                # Succès : on connecte le client
+                request.session['email_client'] = request.session.get('temp_email')
+                
+                # Nettoyage propre de la session
+                request.session.pop('otp_code', None)
+                request.session.pop('temp_email', None)
+                request.session.modified = True
+                
+                return redirect('gestion:portail_client')
+            else:
+                messages.error(request, "Code invalide ou expiré. Veuillez réessayer.")
+                return render(request, 'client/login_otp.html')
+
+        # 2. ÉTAPE 1 : Soumission de l'email
+        elif 'email' in request.POST:
             email = request.POST.get('email', '').strip().lower()
             
             if not email:
                 messages.error(request, "Veuillez entrer une adresse email valide.")
                 return render(request, 'client/login.html')
 
-            # Génération du code OTP pour tout le monde (nouveau ou ancien)
+            # Génération d'un nouveau code
             code = str(random.randint(100000, 999999))
             
-            # Stockage en session pour vérification
+            # Stockage en session
             request.session['temp_email'] = email
             request.session['otp_code'] = code
-
-            request.session.modified = True  # force Django à sauvegarder la session
-            print(f"DEBUG: Session sauvegardée. Session ID={request.session.session_key}")
+            request.session.modified = True  # Force la sauvegarde du cookie de session
             
-            # Envoi du mail
-            # Note : cela fonctionnera même si le client est nouveau
-            envoyer_email_otp(email, code)
+            print(f"DEBUG: Session mise à jour. Email={email}, Code={code}")
             
-            messages.success(request, "Un code de validation vous a été envoyé par email.")
-            return render(request, 'client/login_otp.html')
-        
-        # ÉTAPE 2 : Le client soumet le code reçu
-        elif 'code' in request.POST:
-            user_code = request.POST.get('code')
-            stored_code = request.session.get('otp_code')
-            
-            if stored_code and user_code == stored_code:
-                # Succès : on connecte le client
-                request.session['email_client'] = request.session.get('temp_email')
-                
-                # Nettoyage de la session
-                if 'otp_code' in request.session: del request.session['otp_code']
-                if 'temp_email' in request.session: del request.session['temp_email']
-                
-                return redirect('gestion:portail_client')
-            else:
-                messages.error(request, "Code invalide. Veuillez réessayer.")
+            # Envoi de l'email
+            try:
+                envoyer_email_otp(email, code)
+                print("Succès : Email envoyé via API/SMTP")
+                messages.success(request, "Un code de validation vous a été envoyé par email.")
                 return render(request, 'client/login_otp.html')
-                
-    # Si GET, on affiche simplement la page de login
+            except Exception as e:
+                print(f"ERREUR_EMAIL: {str(e)}")
+                messages.error(request, "Erreur lors de l'envoi de l'email. Veuillez réessayer.")
+                return render(request, 'client/login.html')
+    
+    # Cas GET : affichage initial
     return render(request, 'client/login.html')

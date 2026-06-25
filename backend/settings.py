@@ -30,13 +30,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY')
 DEBUG = os.getenv('DEBUG', 'False') == 'True'      
 EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp-relay.brevo.com')
-#EMAIL_PORT = int(os.getenv('EMAIL_PORT', 465)) # Il prendra la valeur 465 de Render
-#EMAIL_USE_TLS = False  # DOIT ÊTRE FALSE pour le port 465
-#EMAIL_USE_SSL = True   # DOIT ÊTRE TRUE pour le port 465
 EMAIL_TIMEOUT = 30
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp-relay.brevo.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
-#EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
 # Configuration Windows (pour ton PC uniquement)
 if os.name == 'nt' and DEBUG:
@@ -161,14 +162,11 @@ USE_TZ = True
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 SESSION_COOKIE_HTTPONLY = True
 
-# 1. Force le HTTPS pour les cookies
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
-
-# 2. Permet au cookie d'être lu malgré les redirections (Crucial !)
+# Gestion automatique entre local et production
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
 SESSION_COOKIE_SAMESITE = 'Lax'
 CSRF_COOKIE_SAMESITE = 'Lax'
-
 # 3. Assure-toi que ton domaine est bien reconnu
 # Si tu as une erreur 403 CSRF, ajoute ceci :
 CSRF_TRUSTED_ORIGINS = ['https://gestion-clients-cimeti-re.onrender.com']

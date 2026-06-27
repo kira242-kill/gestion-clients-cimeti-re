@@ -101,12 +101,10 @@ def envoyer_document_par_mail(demande, type_doc="REÇU"):
         send_smtp_email = sib_api_v3_sdk.SendSmtpEmail(
             to=[{"email": demande.email_client}],
             sender={"name": "Gestion Cimetière", "email": "kirarider0@gmail.com"},
-            subject=f'{type_doc} pour votre demande - G_C',
-            html_content=f'<p>Bonjour, veuillez trouver ci-joint votre {type_doc}.</p>',
-            attachment=[{"name": f"{type_doc.lower()}.pdf", "content": encoded_pdf}]
+            subject=f'TEST DE RECEPTION - {type_doc}',
+            html_content='<p>Ceci est un test de réception de votre reçu. Si vous recevez ce mail, le système fonctionne normalement.</p>'
         )
         
-        print(f"DEBUG: Envoi prévu vers => {demande.email_client}")
         api_instance.send_transac_email(send_smtp_email)
         logger.info("Email envoyé avec succès via API.")
         

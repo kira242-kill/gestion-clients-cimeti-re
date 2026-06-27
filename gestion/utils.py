@@ -106,15 +106,16 @@ def envoyer_document_par_mail(demande, type_doc="REÇU"):
             to=[{"email": demande.email_client}],
             sender={"name": "Gestion Cimetière", "email": "kirarider0@gmail.com"},
             subject=f'{type_doc} pour votre demande - G_C',
-            html_content = f"""<div style="font-family: sans-serif; line-height: 1.6; color: #333;">
-                    <h2 style="color: #2c3e50;">Gestion Cimetière - Votre document</h2>
-                    <p>Bonjour,</p>
-                    <p>Veuillez trouver ci-joint le <strong>{type_doc}</strong> officiel concernant votre demande N°{demande.id}.</p>
-                    <p>Ce document est une pièce justificative officielle. Merci de le conserver précieusement.</p>
-                    <hr>
-                    <p style="font-size: 0.9em; color: #777;">Ceci est un envoi automatique de la plateforme Gestion Cimetière.</p>
-                </div>
-                """
+            html_content = (
+                    f'<div style="font-family: sans-serif; line-height: 1.6; color: #333;">'
+                    f'<h2 style="color: #2c3e50;">Gestion Cimetière - Votre document</h2>'
+                    f'<p>Bonjour,</p>'
+                    f'<p>Veuillez trouver ci-joint le <strong>{type_doc}</strong> officiel concernant votre demande N°{demande.id}.</p>'
+                    f'<p>Ce document est une pièce justificative officielle. Merci de le conserver précieusement.</p>'
+                    f'<hr>'
+                    f'<p style="font-size: 0.9em; color: #777;">Ceci est un envoi automatique de la plateforme Gestion Cimetière.</p>'
+                    f'</div>'
+                )
             attachment=[{"name": f"Reçu_Demande_{demande.id}_Gestion_Cimetiere.pdf", "content": encoded_pdf}]
         )
         

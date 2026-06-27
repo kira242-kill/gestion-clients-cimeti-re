@@ -102,11 +102,12 @@ def envoyer_document_par_mail(demande, type_doc="REÇU"):
         # Encodage Base64 du PDF
         encoded_pdf = base64.b64encode(pdf_content).decode('utf-8')
         
+        # Ton code avant...
         send_smtp_email = sib_api_v3_sdk.SendSmtpEmail(
             to=[{"email": demande.email_client}],
             sender={"name": "Gestion Cimetière", "email": "kirarider0@gmail.com"},
             subject=f'{type_doc} pour votre demande - G_C',
-            html_content = (
+            html_content=(
                 f'<div style="font-family: sans-serif; line-height: 1.6; color: #333;">'
                 f'<h2 style="color: #2c3e50;">Gestion Cimetière - Votre document</h2>'
                 f'<p>Bonjour,</p>'
@@ -115,7 +116,7 @@ def envoyer_document_par_mail(demande, type_doc="REÇU"):
                 f'<hr>'
                 f'<p style="font-size: 0.9em; color: #777;">Ceci est un envoi automatique de la plateforme Gestion Cimetière.</p>'
                 f'</div>'
-            )
+            ),
             attachment=[{"name": f"Reçu_Demande_{demande.id}_Gestion_Cimetiere.pdf", "content": encoded_pdf}]
         )
         

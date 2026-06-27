@@ -13,86 +13,106 @@ from django.conf import settings
 import socket
 import sib_api_v3_sdk
 from sib_api_v3_sdk.rest import ApiException
+import base64
+import os
 
 
 logger = logging.getLogger(__name__)
 
 def generer_document_pdf(demande, type_doc="REÇU"):
     buffer = BytesIO()
-    p = canvas.Canvas(buffer, pagesize=A4)
-    width, height = A4
-
-    # 1. En-tête
-    p.setFont("Helvetica-Bold", 20)
-    p.drawString(200, height - 80, type_doc.upper())
-
-    p.setStrokeColor(colors.gray)
-    p.line(50, height - 120, 550, height - 120)
-
-    # 2. Détails dynamiques
-    p.setFont("Helvetica", 12)
-    y = height - 160
-    
-    montant = demande.montant_devis if type_doc == "DEVIS" else demande.montant_paye
-    
-    details = [
-        f"Demandeur : {demande.email_client}",
-        f"Nom du défunt : {demande.nom_defunt_prevu}",
-        f"Prénom du défunt : {demande.prenom_defunt_prevu}",
-        f"Tombe N° : {demande.tombe.numero_tombe}",
-        f"Date souhaitée : {demande.date_enterrement}",
-        f"Montant ({type_doc}) : {montant} FCFA"
-    ]
-    
-    for line in details:
-        p.drawString(100, y, line)
-        y -= 25
-
-    # 3. QR Code intégré
-    qr_data = f"ID_DEMANDE:{demande.id}"
-    qr = qrcode.make(qr_data)
     qr_stream = BytesIO()
-    qr.save(qr_stream, format="PNG")
-    qr_stream.seek(0)
     
-    # CORRECTION : Utilisation de ImageReader pour lire le flux BytesIO
-    qr_image = ImageReader(qr_stream)
-    p.drawImage(qr_image, 400, y - 100, width=100, height=100)
-    
-    # 4. Pied de page
-    p.setFont("Helvetica-Oblique", 10)
-    p.drawString(100, 50, "Document généré par le système G_C.")
-    
-    # Finalisation du document
-    p.showPage()
-    p.save()
+    try:
+        p = canvas.Canvas(buffer, pagesize=A4)
+        width, height = A4
 
-    # Récupération sécurisée du contenu final
-    pdf_data = buffer.getvalue()
-    buffer.close()
-    qr_stream.close() # Nettoyage du flux QR
+        # 1. Ajout du Logo (depuis ton dossier static)
+        logo_path = os.path.join(settings.BASE_DIR, 'static', 'images', 'logo.png')
+        if os.path.exists(logo_path):
+            p.drawImage(logo_path, 50, height - 100, width=80, height=80, preserveAspectRatio=True)
 
-    # Sauvegarde dans le modèle
-    filename = f"{type_doc.lower()}_{demande.id}.pdf"
-    if type_doc == "DEVIS":
-        demande.devis_pdf.save(filename, ContentFile(pdf_data), save=True)
-    else:
-        demande.recu_pdf.save(filename, ContentFile(pdf_data), save=True)
+        # 2. En-tête coloré et stylisé
+        p.setFillColor(colors.darkblue)
+        p.setFont("Helvetica-Bold", 24)
+        p.drawString(150, height - 70, f"DOCUMENT : {type_doc.upper()}")
+        
+        p.setStrokeColor(colors.darkblue)
+        p.setLineWidth(2)
+        p.line(50, height - 120, 550, height - 120)
 
-    return pdf_data
+        # 3. Détails avec couleurs
+        y = height - 180
+        p.setFillColor(colors.black)
+        p.setFont("Helvetica", 12)
+        
+        montant = demande.montant_devis if type_doc == "DEVIS" else demande.montant_paye
+        
+        details = [
+            ("Demandeur :", demande.email_client),
+            ("Nom du défunt :", f"{demande.nom_defunt_prevu} {demande.prenom_defunt_prevu}"),
+            ("Tombe N° :", str(demande.tombe.numero_tombe)),
+            ("Date souhaitée :", str(demande.date_enterrement)),
+            ("Montant total :", f"{montant} FCFA")
+        ]
+        
+        for label, val in details:
+            p.setFont("Helvetica-Bold", 12)
+            p.drawString(100, y, label)
+            p.setFont("Helvetica", 12)
+            p.drawString(250, y, val)
+            y -= 30
 
+        # 4. QR Code
+        qr_data = f"ID_DEMANDE:{demande.id}"
+        qr = qrcode.make(qr_data)
+        qr.save(qr_stream, format="PNG")
+        qr_stream.seek(0)
+        p.drawImage(ImageReader(qr_stream), 400, 100, width=100, height=100)
+        
+        p.showPage()
+        p.save()
+
+        pdf_data = buffer.getvalue()
+        
+        # Sauvegarde modèle
+        filename = f"{type_doc.lower()}_{demande.id}.pdf"
+        if type_doc == "DEVIS": demande.devis_pdf.save(filename, ContentFile(pdf_data), save=True)
+        else: demande.recu_pdf.save(filename, ContentFile(pdf_data), save=True)
+        
+        return pdf_data
+    finally:
+        buffer.close()
+        qr_stream.close()
 
 def envoyer_document_par_mail(demande, type_doc="REÇU"):
-    pdf_content = generer_document_pdf(demande, type_doc=type_doc)
-    
-    email = EmailMessage(
-        f'{type_doc} pour votre demande - G_C',
-        f'Veuillez trouver ci-joint votre {type_doc} concernant la tombe {demande.tombe.numero_tombe}.',
-        'gestion@cimetiere.com',
-        [demande.email_client],
-    )
-    email.attach(f'{type_doc.lower()}_{demande.id}.pdf', pdf_content, 'application/pdf')
-    email.send()
+    try:
+        # Générer le PDF
+        pdf_content = generer_document_pdf(demande, type_doc=type_doc)
+        
+        # Préparer l'API
+        configuration = sib_api_v3_sdk.Configuration()
+        configuration.api_key['api-key'] = settings.EMAIL_HOST_PASSWORD
+        api_instance = sib_api_v3_sdk.TransactionalEmailsApi(sib_api_v3_sdk.ApiClient(configuration))
+        
+        # Encodage Base64 du PDF
+        encoded_pdf = base64.b64encode(pdf_content).decode('utf-8')
+        
+        send_smtp_email = sib_api_v3_sdk.SendSmtpEmail(
+            to=[{"email": demande.email_client}],
+            sender={"name": "Gestion Cimetière", "email": "gestion@cimetiere.com"},
+            subject=f'{type_doc} pour votre demande - G_C',
+            html_content=f'<p>Bonjour, veuillez trouver ci-joint votre {type_doc}.</p>',
+            attachment=[{"name": f"{type_doc.lower()}.pdf", "content": encoded_pdf}]
+        )
+        
+        api_instance.send_transac_email(send_smtp_email)
+        logger.info("Email envoyé avec succès via API.")
+        
+    except ApiException as e:
+        logger.error(f"Erreur API Brevo: {e}")
+    except Exception as e:
+        logger.error(f"Erreur fatale envoi email: {e}")
 
 def enregistrer_action(user, action, details):
     HistoriqueAction.objects.create(agent=user, action=action, details=details)

@@ -185,27 +185,51 @@ def lister_demandes(request):
         })
     return res
 
+from django.db import transaction
+from ninja.errors import HttpError
+
 @csrf_exempt
 @api.post("/demandes/{demande_id}/traiter", auth=None)
 def traiter_demande(request, demande_id: int, action: str):
     d = get_object_or_404(Demande, id=demande_id)
-    if action == "Approuvée":
-        Defunt.objects.create(nom=d.nom_defunt_prevu, prenom=d.prenom_defunt_prevu, date_enterrement=d.date_creation, tombe=d.tombe)
-        d.statut_demande = "Approuvée"
-        d.tombe.statut = "Occupée"
-        d.tombe.save()
-        d.save()
-        envoyer_document_par_mail(d, type_doc="REÇU")
-        enregistrer_action(request.user, "Approbation", f"Demande {d.id} validée")
-        return {"message": "Approuvé"}
-    elif action == "Rejetée":
-        d.statut_demande = "Rejetée"
-        d.tombe.statut = "Disponible"
-        d.tombe.save()
-        d.save()
-        enregistrer_action(request.user, "Rejet", f"Demande {d.id} rejetée")
-        return {"message": "Rejeté"}
-    raise HttpError(400, "Action non reconnue")
+    
+    # 1. Utilisation d'une transaction atomique : 
+    # Tout réussit, ou rien n'est modifié en base.
+    try:
+        with transaction.atomic():
+            if action == "Approuvée":
+                Defunt.objects.create(
+                    nom=d.nom_defunt_prevu, 
+                    prenom=d.prenom_defunt_prevu, 
+                    date_enterrement=d.date_creation, 
+                    tombe=d.tombe
+                )
+                d.statut_demande = "Approuvée"
+                d.tombe.statut = "Occupée"
+            elif action == "Rejetée":
+                d.statut_demande = "Rejetée"
+                d.tombe.statut = "Disponible"
+            else:
+                raise HttpError(400, "Action non reconnue")
+            
+            d.tombe.save()
+            d.save()
+            
+            # Gestion sécurisée de l'agent
+            agent = request.user if request.user.is_authenticated else None
+            enregistrer_action(agent, action, f"Demande {d.id} {action}")
+
+        # 2. Envoi de l'email HORS de la transaction
+        # Si l'email échoue, la DB reste propre car la transaction est déjà validée
+        if action == "Approuvée":
+            # On appelle la nouvelle fonction API Brevo (non bloquante)
+            envoyer_document_par_mail(d, type_doc="REÇU")
+            
+        return {"message": f"{action} avec succès"}
+
+    except Exception as e:
+        logger.error(f"Erreur lors du traitement de la demande {demande_id}: {e}")
+        raise HttpError(500, "Erreur interne lors du traitement")
 
 @api.post("/zones", auth=None)
 def creer_zone(request, data: ZoneSchema):

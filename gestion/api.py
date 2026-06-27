@@ -184,9 +184,9 @@ def lister_demandes(request):
             "date_creation": d.date_creation.strftime("%d/%m/%Y") if d.date_creation else "N/A"
         })
     return res
-    
+
 @csrf_exempt
-@api.post("/demandes/{demande_id}/traiter")
+@api.post("/demandes/{demande_id}/traiter", auth=None)
 def traiter_demande(request, demande_id: int, action: str):
     d = get_object_or_404(Demande, id=demande_id)
     if action == "Approuvée":

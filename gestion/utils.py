@@ -32,6 +32,10 @@ def generer_document_pdf(demande, type_doc="REÇU"):
         if os.path.exists(logo_path):
             p.drawImage(logo_path, 50, height - 100, width=80, height=80, preserveAspectRatio=True)
 
+        p.setTitle(f"Reçu {demande.id}")  
+        p.setAuthor("Gestion Cimetière")  
+        p.setSubject("Document officiel de confirmation")
+
         # 2. En-tête coloré et stylisé
         p.setFillColor(colors.darkblue)
         p.setFont("Helvetica-Bold", 24)
@@ -101,8 +105,17 @@ def envoyer_document_par_mail(demande, type_doc="REÇU"):
         send_smtp_email = sib_api_v3_sdk.SendSmtpEmail(
             to=[{"email": demande.email_client}],
             sender={"name": "Gestion Cimetière", "email": "kirarider0@gmail.com"},
-            subject=f'TEST DE RECEPTION - {type_doc}',
-            html_content='<p>Ceci est un test de réception de votre reçu. Si vous recevez ce mail, le système fonctionne normalement.</p>'
+            subject=f'{type_doc} pour votre demande - G_C',
+            html_content = f"""<div style="font-family: sans-serif; line-height: 1.6; color: #333;">
+                    <h2 style="color: #2c3e50;">Gestion Cimetière - Votre document</h2>
+                    <p>Bonjour,</p>
+                    <p>Veuillez trouver ci-joint le <strong>{type_doc}</strong> officiel concernant votre demande N°{demande.id}.</p>
+                    <p>Ce document est une pièce justificative officielle. Merci de le conserver précieusement.</p>
+                    <hr>
+                    <p style="font-size: 0.9em; color: #777;">Ceci est un envoi automatique de la plateforme Gestion Cimetière.</p>
+                </div>
+                """
+            attachment=[{"name": f"Reçu_Demande_{demande.id}_Gestion_Cimetiere.pdf", "content": encoded_pdf}]
         )
         
         api_instance.send_transac_email(send_smtp_email)
